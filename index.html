@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - HealthCare (DEMO)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">
+            <i class="fas fa-heartbeat mr-2 text-blue-600"></i>Register for HealthCare
+        </h2>
+        
+        <form id="register-form" class="space-y-4">
+            <div>
+                <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                <input type="text" id="username" name="username" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition">
+            </div>
+             <div>
+                <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                <input type="email" id="email" name="email" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition">
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="password" name="password" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition">
+            </div>
+            <div>
+                <label for="role" class="block text-sm font-medium text-gray-700">Register As</label>
+                <select id="role" name="role" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition">
+                    <option value="patient">Patient</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+
+            <div id="message-area" class="text-center text-sm font-medium hidden p-3 rounded-lg"></div>
+
+            <button type="submit" id="submit-button" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-lg hover:bg-blue-700 transition duration-300 flex items-center justify-center">
+                <span id="button-text">Register</span>
+                <i id="button-spinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+            </button>
+        </form>
+        
+        <p class="text-center text-gray-600 text-sm mt-6">
+            Already have an account? <a href="login.html" class="text-blue-600 hover:underline font-medium">Login here</a>
+        </p>
+    </div>
+
+    <script>
+        // --- DOM Element References ---
+        const registerForm = document.getElementById('register-form');
+        const messageArea = document.getElementById('message-area');
+        const submitButton = document.getElementById('submit-button');
+        const buttonText = document.getElementById('button-text');
+        const buttonSpinner = document.getElementById('button-spinner');
+
+        // --- UI Helper Functions ---
+        function showLoading(isLoading) {
+            submitButton.disabled = isLoading;
+            buttonSpinner.classList.toggle('hidden', !isLoading);
+            buttonText.textContent = isLoading ? 'Registering...' : 'Register';
+        }
+
+        function displayMessage(message, isError = false) {
+            messageArea.classList.remove('hidden');
+            messageArea.textContent = message;
+            messageArea.className = `text-center text-sm font-medium p-3 rounded-lg ${isError ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`;
+        }
+
+        // --- DUMMY REGISTRATION LOGIC ---
+        registerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            showLoading(true);
+            displayMessage('', false); // Clear previous messages
+            
+            // Get form data
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+            
+            // --- Simulasi Validasi & Error Handling ---
+            if (password.length < 6) {
+                setTimeout(() => {
+                    displayMessage('Password is too weak. Please use at least 6 characters.', true);
+                    showLoading(false);
+                }, 1000); // Tunda 1 detik agar terasa seperti pengecekan server
+                return;
+            }
+            
+            // Untuk mengetes error "email sudah ada", kita gunakan email dummy
+            if (email.toLowerCase() === 'admin@test.com' || email.toLowerCase() === 'patient@test.com') {
+                setTimeout(() => {
+                    displayMessage('This email address is already registered.', true);
+                    showLoading(false);
+                }, 1000);
+                return;
+            }
+
+            // --- Simulasi Registrasi Sukses ---
+            console.log('--- DUMMY REGISTRATION DATA ---');
+            console.log('Username:', username);
+            console.log('Email:', email);
+            console.log('Password:', password);
+            console.log('Role:', role);
+            console.log('-------------------------------');
+
+            // Tampilkan pesan sukses setelah 1.5 detik
+            setTimeout(() => {
+                displayMessage('Registration successful! Redirecting to login...', false);
+                
+                // Arahkan ke halaman login setelah 2 detik
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+
+            }, 1500);
+        });
+    </script>
+</body>
+</html>

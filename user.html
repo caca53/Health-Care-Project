@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Dashboard - HealthCare (DEMO)</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-image: url('https://source.unsplash.com/1600x900/?healthcare,hospital,clinic');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center center;
+        }
+        .bg-panel {
+            background-color: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-light"> 
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-lg">
+        <div class="container">
+            <a class="navbar-brand font-weight-bold" href="#">
+                <i class="fas fa-heartbeat mr-2"></i> HealthCare
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item">
+                        <span id="welcome-user" class="navbar-text mr-3"></span>
+                    </li>
+                    <li class="nav-item">
+                        <button id="logout-btn" class="btn btn-light btn-sm rounded-pill">Logout</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-5">
+        <h1 class="mb-4 text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);" id="dashboard-title">My Dashboard</h1>
+
+        <div class="bg-panel p-4 rounded shadow mb-4">
+            <h2 class="h4 font-weight-bold text-gray-800"><i class="fas fa-calendar-week mr-2 text-primary"></i> Jadwal Praktik Dokter</h2>
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-striped table-hover">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Dokter</th>
+                            <th>Spesialisasi</th>
+                            <th>Hari & Jam</th>
+                            <th class="text-center">Total Kuota</th>
+                            <th class="text-center">Sisa Kuota</th>
+                        </tr>
+                    </thead>
+                    <tbody id="master-schedule-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="bg-panel p-4 rounded shadow mb-4">
+            <h2 class="h4 font-weight-semibold"><i class="fas fa-notes-medical mr-2 text-primary"></i> Book a New Appointment</h2>
+            <form id="booking-form" class="form-row align-items-end">
+                <div class="col-md-5 mb-2">
+                    <label for="doctor-select" class="font-weight-medium text-gray-700">Doctor</label>
+                    <select id="doctor-select" required class="form-control"></select>
+                </div>
+                <div class="col-md-5 mb-2">
+                    <label for="appointment-date" class="font-weight-medium text-gray-700">Date & Time</label>
+                    <input type="datetime-local" id="appointment-date" required class="form-control">
+                </div>
+                <div class="col-md-2 mb-2">
+                    <button type="submit" class="btn btn-primary btn-block">Book Now</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="bg-panel p-4 rounded shadow mb-4">
+            <h2 class="h4 font-weight-semibold"><i class="fas fa-calendar-check mr-2 text-primary"></i> My Appointments</h2>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="text-center">No. Antrian</th>
+                            <th>Doctor</th>
+                            <th>Specialty</th>
+                            <th>Date & Time</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="appointments-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="bg-panel p-4 rounded shadow">
+            <h2 class="h4 font-weight-semibold text-gray-800"><i class="fas fa-file-medical-alt mr-2 text-primary"></i> My Health Records</h2>
+            <div id="health-records-container" class="space-y-3"></div>
+        </div>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // 1. SETUP & AUTH GUARD (DINONAKTIFKAN UNTUK DEMO)
+        /*
+        const token = localStorage.getItem('token');
+        let currentUser = {};
+        try {
+            currentUser = JSON.parse(atob(token.split('.')[1])).user;
+            if (!token || currentUser.role !== 'patient') { throw new Error('Invalid role'); }
+        } catch (e) {
+            alert('Authorization denied. Please login as Patient.');
+            window.location.href = 'login.html';
+            return;
+        }
+        */
+        const currentUser = { username: 'Budi' }; // Data user dummy
+
+        // 2. DOM ELEMENTS
+        const welcomeUserSpan = document.getElementById('welcome-user');
+        const masterScheduleTbody = document.getElementById('master-schedule-tbody');
+        const appointmentsTbody = document.getElementById('appointments-tbody');
+        const doctorSelect = document.getElementById('doctor-select');
+        const bookingForm = document.getElementById('booking-form');
+        const healthRecordsContainer = document.getElementById('health-records-container');
+        
+        // ===============================================
+        // DUMMY DATA SECTION
+        // ===============================================
+        const dummyMasterSchedule = [
+            { id: 1, doctor_name: 'Dr. Siti Wardani', specialty: 'Dentist', day_of_week: 'Senin', start_time: '09:00:00', end_time: '12:00:00', quota: 10, current_quota: 7 },
+            { id: 2, doctor_name: 'Dr. Budi Santoso', specialty: 'Cardiology', day_of_week: 'Selasa', start_time: '13:00:00', end_time: '16:00:00', quota: 5, current_quota: 2 },
+            { id: 3, doctor_name: 'Dr. Andi Wijaya', specialty: 'General Medicine', day_of_week: 'Rabu', start_time: '08:00:00', end_time: '11:00:00', quota: 15, current_quota: 12 },
+            { id: 4, doctor_name: 'Dr. Sinta Dewi', specialty: 'Pediatrics', day_of_week: 'Kamis', start_time: '10:00:00', end_time: '13:00:00', quota: 8, current_quota: 8 }
+        ];
+
+        const dummyUserAppointments = [
+            { id: 1, nomor_antrian: 3, doctor_name: 'Dr. Andi Wijaya', specialty: 'General Medicine', appointment_date: '2025-06-17T10:00:00', status: 'completed' },
+            { id: 2, nomor_antrian: 1, doctor_name: 'Dr. Budi Santoso', specialty: 'Cardiology', appointment_date: '2025-06-18T13:00:00', status: 'confirmed' },
+            { id: 3, nomor_antrian: 8, doctor_name: 'Dr. Siti Wardani', specialty: 'Dentist', appointment_date: '2025-06-23T09:30:00', status: 'pending' },
+            { id: 4, nomor_antrian: 2, doctor_name: 'Dr. Budi Santoso', specialty: 'Cardiology', appointment_date: '2025-05-16T13:00:00', status: 'canceled' }
+        ];
+
+        const dummyDoctors = [
+            { id: 1, name: 'Dr. Siti Wardani', specialty: 'Dentist' },
+            { id: 2, name: 'Dr. Budi Santoso', specialty: 'Cardiology' },
+            { id: 3, name: 'Dr. Andi Wijaya', specialty: 'General Medicine' },
+            { id: 4, name: 'Dr. Sinta Dewi', specialty: 'Pediatrics' }
+        ];
+
+        const dummyHealthRecords = [
+            { id: 1, diagnosis: 'Common Cold', notes: 'Patient advised to rest and drink plenty of fluids. Prescribed paracetamol.', record_date: '2025-05-10T10:00:00', doctor_name: 'Andi Wijaya', specialty: 'General Medicine' },
+            { id: 2, diagnosis: 'Annual Check-up', notes: 'Blood pressure and cholesterol levels are normal. Overall healthy.', record_date: '2025-03-15T14:00:00', doctor_name: 'Budi Santoso', specialty: 'Cardiology' }
+        ];
+
+        // 3. RENDER FUNCTIONS (semua menggunakan data dummy)
+        function renderMasterSchedule() {
+            const schedules = dummyMasterSchedule;
+            masterScheduleTbody.innerHTML = '';
+            if (schedules.length === 0) {
+                masterScheduleTbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No schedules available.</td></tr>';
+            } else {
+                schedules.forEach(sch => {
+                    const timeSlot = `${sch.start_time.slice(0,5)} - ${sch.end_time.slice(0,5)}`;
+                    masterScheduleTbody.innerHTML += `
+                        <tr>
+                            <td>${sch.doctor_name}</td>
+                            <td>${sch.specialty}</td>
+                            <td>${sch.day_of_week}, ${timeSlot}</td>
+                            <td class="text-center">${sch.quota}</td>
+                            <td class="text-center ${sch.current_quota <= 3 ? 'text-danger font-weight-bold' : ''}">${sch.current_quota}</td>
+                        </tr>`;
+                });
+            }
+        }
+
+        function renderAppointments() {
+            const appointments = dummyUserAppointments;
+            appointmentsTbody.innerHTML = ''; 
+            if (appointments.length === 0) {
+                appointmentsTbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No appointments found.</td></tr>';
+            } else {
+                appointments.forEach(appt => {
+                    const formattedDate = new Date(appt.appointment_date).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' });
+                    const statusBadge = appt.status === 'pending' ? 'badge-warning' :
+                                      appt.status === 'confirmed' ? 'badge-success' :
+                                      appt.status === 'canceled' ? 'badge-danger' :
+                                      'badge-secondary';
+
+                    appointmentsTbody.innerHTML += `
+                        <tr>
+                            <td class="text-center font-weight-bold text-lg text-primary">${appt.nomor_antrian || '-'}</td>
+                            <td>${appt.doctor_name}</td>
+                            <td>${appt.specialty}</td>
+                            <td>${formattedDate}</td>
+                            <td class="text-center"><span class="badge ${statusBadge} p-2">${appt.status}</span></td>
+                            <td class="text-center">
+                                <button data-id="${appt.id}" class="btn btn-danger btn-sm cancel-btn"
+                                    ${appt.status === 'canceled' || appt.status === 'completed' ? 'disabled' : ''}>Cancel</button>
+                            </td>
+                        </tr>`;
+                });
+            }
+        }
+
+        function renderDoctorsForDropdown() {
+            const doctors = dummyDoctors;
+            doctorSelect.innerHTML = '<option value="">-- Select a Doctor --</option>';
+            doctors.forEach(doc => {
+                doctorSelect.innerHTML += `<option value="${doc.id}">${doc.name} (${doc.specialty})</option>`;
+            });
+        }
+
+        function renderHealthRecords() {
+            const records = dummyHealthRecords;
+            healthRecordsContainer.innerHTML = '';
+            if (records.length === 0) {
+                healthRecordsContainer.innerHTML = '<p class="text-muted">No health records found.</p>';
+            } else {
+                records.forEach(record => {
+                    const formattedDate = new Date(record.record_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+                    healthRecordsContainer.innerHTML += `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="card-title text-primary mb-0">${record.diagnosis}</h5>
+                                <span class="text-muted small">${formattedDate}</span>
+                            </div>
+                            <p class="card-text">${record.notes || ''}</p>
+                            <p class="card-text small text-muted mb-0">Treated by: <strong>Dr. ${record.doctor_name}</strong> (${record.specialty})</p>
+                        </div>
+                    </div>`;
+                });
+            }
+        }
+
+        // 4. EVENT LISTENERS
+        bookingForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const bookingData = { 
+                doctorId: doctorSelect.value, 
+                appointmentDate: document.getElementById('appointment-date').value,
+            };
+            if (!bookingData.doctorId || !bookingData.appointmentDate) {
+                alert('Please select a doctor and a date.');
+                return;
+            }
+
+            const selectedDateTime = new Date(bookingData.appointmentDate);
+            const currentDateTime = new Date();
+            if (selectedDateTime <= currentDateTime) {
+                alert('Please select a future date and time for your appointment.');
+                return;
+            }
+            
+            // SIMULASI BOOKING BERHASIL
+            const selectedDoctor = doctorSelect.options[doctorSelect.selectedIndex].text;
+            alert(`(DEMO) Booking successfully requested for ${selectedDoctor} on ${selectedDateTime.toLocaleString('id-ID')}.\n\nNOTE: The appointments list will not update as this is a demo.`);
+            bookingForm.reset();
+        });
+
+        appointmentsTbody.addEventListener('click', (e) => {
+            if (e.target.classList.contains('cancel-btn')) {
+                const appointmentId = e.target.dataset.id;
+                if (confirm('Are you sure you want to cancel this appointment?')) {
+                    // Hanya simulasi di sisi client
+                    e.target.closest('tr').querySelector('.badge').className = 'badge badge-danger p-2';
+                    e.target.closest('tr').querySelector('.badge').textContent = 'canceled';
+                    e.target.disabled = true;
+                    alert('(DEMO) Appointment canceled successfully.');
+                }
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            alert('(DEMO) You have been logged out.');
+            // Di aplikasi nyata:
+            // localStorage.removeItem('token');
+            // window.location.href = 'login.html';
+        });
+
+        // 5. INITIALIZE PAGE
+        function init() {
+            welcomeUserSpan.textContent = `Welcome, ${currentUser.username}!`; 
+            renderMasterSchedule();
+            renderAppointments();
+            renderDoctorsForDropdown();
+            renderHealthRecords(); 
+        }
+        init();
+    });
+    </script>
+</body>
+</html>

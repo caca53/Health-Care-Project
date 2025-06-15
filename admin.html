@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - HealthCare (DEMO)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-image: url('https://source.unsplash.com/1600x900/?hospital,medical,dashboard');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center center;
+        }
+        .bg-panel {
+            background-color: rgba(255, 255, 255, 0.92); /* Sedikit lebih tebal agar mudah dibaca */
+            backdrop-filter: blur(5px); /* Efek blur untuk background */
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #4a5568;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+        tbody tr:hover {
+            background-color: #f0f4f8;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <nav class="bg-blue-800 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold flex items-center"><i class="fas fa-hospital mr-3 text-blue-300"></i> HealthCare Admin</a>
+            <div class="flex items-center space-x-4">
+                <span id="welcome-admin" class="font-semibold text-blue-200"></span>
+                <button id="logout-btn" class="bg-white text-blue-800 px-4 py-1 rounded-full font-medium hover:bg-blue-100 transition duration-200">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        
+        <div class="space-y-8">
+            <div class="bg-panel p-6 rounded-xl shadow-md">
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2 text-gray-800"><i class="fas fa-user-md mr-2 text-blue-600"></i> Doctor Management</h2>
+                <form id="doctor-form" class="space-y-4 mb-6">
+                    <input type="hidden" id="doctor-id">
+                    <input type="text" id="doctor-name" placeholder="Doctor Name" required class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="doctor-specialty" placeholder="Specialty" required class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">Save Doctor</button>
+                </form>
+                <div class="max-h-60 overflow-y-auto">
+                    <table class="min-w-full text-sm">
+                        <thead><tr><th class="p-2">Name</th><th class="p-2">Specialty</th><th class="p-2">Actions</th></tr></thead>
+                        <tbody id="doctors-tbody" class="divide-y"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-panel p-6 rounded-xl shadow-md">
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2 text-gray-800"><i class="fas fa-calendar-alt mr-2 text-green-600"></i> Schedule Management</h2>
+                <form id="schedule-form" class="space-y-4 mb-6">
+                    <select id="schedule-doctor-select" required class="w-full p-2 border rounded-lg bg-white focus:ring-2 focus:ring-green-500"></select>
+                    <select id="schedule-day" required class="w-full p-2 border rounded-lg bg-white focus:ring-2 focus:ring-green-500">
+                        <option value="">-- Select Day --</option>
+                        <option value="Senin">Senin</option><option value="Selasa">Selasa</option><option value="Rabu">Rabu</option><option value="Kamis">Kamis</option><option value="Jumat">Jumat</option>
+                        <option value="Sabtu">Sabtu</option><option value="Minggu">Minggu</option>
+                    </select>
+                    <div class="flex gap-4">
+                        <input type="time" id="schedule-start" required class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500">
+                        <input type="time" id="schedule-end" required class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <input type="number" id="schedule-quota" placeholder="Quota" required class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500" min="0">
+                    <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">Add Schedule</button>
+                </form>
+                <div class="max-h-60 overflow-y-auto">
+                    <table class="min-w-full text-sm">
+                        <thead><tr><th class="p-2">Doctor</th><th class="p-2">Day & Time</th><th class="p-2">Quota</th></tr></thead>
+                        <tbody id="schedules-tbody" class="divide-y"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-panel p-6 rounded-xl shadow-md">
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2 text-gray-800"><i class="fas fa-hospital-alt mr-2 text-indigo-600"></i> Facility Management</h2>
+                <form id="facility-form" class="space-y-4 mb-6">
+                    <input type="hidden" id="facility-id">
+                    <input type="text" id="facility-name" placeholder="Facility Name" required class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    <select id="facility-type" required class="w-full p-2 border rounded-lg bg-white focus:ring-2 focus:ring-indigo-500">
+                        <option value="">-- Select Type --</option>
+                        <option value="Kamar Rawat Inap">Kamar Rawat Inap</option>
+                        <option value="Laboratorium">Laboratorium</option>
+                        <option value="Ruang Operasi">Ruang Operasi</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                    <div class="flex gap-4">
+                        <input type="text" id="facility-location" placeholder="Location" required class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <input type="number" id="facility-capacity" placeholder="Total Capacity" required class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500" min="0">
+                    </div>
+                    <textarea id="facility-description" placeholder="Description" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition">Save Facility</button>
+                </form>
+                <div class="max-h-60 overflow-y-auto">
+                    <table class="min-w-full text-sm">
+                        <thead><tr><th class="p-2">Name</th><th class="p-2">Type</th><th class="p-2">Capacity</th><th class="p-2">Actions</th></tr></thead>
+                        <tbody id="facilities-tbody" class="divide-y"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-8">
+            <div class="bg-panel p-6 rounded-xl shadow-md">
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2 text-gray-800"><i class="fas fa-calendar-check mr-2 text-blue-600"></i> Patient Appointments</h2>
+                <div class="overflow-x-auto max-h-[400px] overflow-y-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-3 py-2">No. Antrian</th>
+                                <th class="px-3 py-2">Patient</th>
+                                <th class="px-3 py-2">Doctor</th>
+                                <th class="px-3 py-2">Date & Time</th>
+                                <th class="px-3 py-2">Status</th>
+                                <th class="px-3 py-2">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patient-appointments-tbody" class="bg-white divide-y divide-gray-200">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-panel p-6 rounded-xl shadow-md">
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2 text-gray-800"><i class="fas fa-file-medical mr-2 text-purple-600"></i> Medical Reports (Completed Appointments)</h2>
+                <div id="medical-reports-container" class="space-y-4 max-h-[600px] overflow-y-auto">
+                    </div>
+            </div>
+        </div>
+    </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. AUTH GUARD & SETUP (DINONAKTIFKAN UNTUK DEMO)
+    /*
+    const token = localStorage.getItem('token');
+    let currentUser = {};
+    try {
+        currentUser = JSON.parse(atob(token.split('.')[1])).user;
+        if (!token || currentUser.role !== 'admin') { throw new Error('Invalid role'); }
+    } catch (e) {
+        alert('Akses Ditolak. Silakan login sebagai Admin.');
+        window.location.href = 'login.html';
+        return;
+    }
+    */
+    document.getElementById('welcome-admin').textContent = `Welcome, Admin Demo!`; 
+
+    // 2. DOM ELEMENTS
+    const doctorsTbody = document.getElementById('doctors-tbody');
+    const doctorForm = document.getElementById('doctor-form');
+    const schedulesTbody = document.getElementById('schedules-tbody');
+    const scheduleDoctorSelect = document.getElementById('schedule-doctor-select');
+    const scheduleForm = document.getElementById('schedule-form');
+    const patientAppointmentsTbody = document.getElementById('patient-appointments-tbody'); 
+    const medicalReportsContainer = document.getElementById('medical-reports-container'); 
+    const facilitiesTbody = document.getElementById('facilities-tbody');
+    const facilityForm = document.getElementById('facility-form');
+
+    // =======================================================
+    // DUMMY DATA SECTION - Semua data sekarang dari sini
+    // =======================================================
+    const dummyDoctors = [
+        { id: 1, name: 'Dr. Siti Wardani', specialty: 'Dentist' },
+        { id: 2, name: 'Dr. Budi Santoso', specialty: 'Cardiology' },
+        { id: 3, name: 'Dr. Andi Wijaya', specialty: 'General Medicine' }
+    ];
+
+    const dummySchedules = [
+        { id: 1, doctor_id: 1, doctor_name: 'Dr. Siti Wardani', day_of_week: 'Senin', start_time: '09:00:00', end_time: '12:00:00', quota: 10 },
+        { id: 2, doctor_id: 2, doctor_name: 'Dr. Budi Santoso', day_of_week: 'Selasa', start_time: '13:00:00', end_time: '16:00:00', quota: 5 },
+        { id: 3, doctor_id: 1, doctor_name: 'Dr. Siti Wardani', day_of_week: 'Rabu', start_time: '09:00:00', end_time: '12:00:00', quota: 10 },
+    ];
+
+    const dummyFacilities = [
+        { id: 1, name: 'Kamar Melati 101', type: 'Kamar Rawat Inap', location: 'Gedung A, Lt. 1', capacity: 2, description: 'Kamar kelas VIP dengan 2 tempat tidur.' },
+        { id: 2, name: 'Lab Patologi Klinik', type: 'Laboratorium', location: 'Gedung B, Lt. 2', capacity: 15, description: 'Laboratorium untuk tes darah dan urin.' },
+        { id: 3, name: 'Ruang Operasi Mayor', type: 'Ruang Operasi', location: 'Gedung C, Lt. 3', capacity: 1, description: 'Untuk operasi bedah besar.' }
+    ];
+
+    const dummyAppointments = [
+        { id: 101, nomor_antrian: 1, patient_name: 'Budi Santoso', doctor_name: 'Dr. Siti Wardani', specialty: 'Dentist', appointment_date: '2025-06-18T09:00:00', status: 'pending' },
+        { id: 102, nomor_antrian: 5, patient_name: 'Ani Fitria', doctor_name: 'Dr. Sinta Dewi', specialty: 'Pediatrics', appointment_date: '2025-06-20T16:30:00', status: 'confirmed' },
+        { id: 103, nomor_antrian: 2, patient_name: 'Joko Susilo', doctor_name: 'Dr. Andi Wijaya', specialty: 'General Medicine', appointment_date: '2025-06-17T10:00:00', status: 'completed' },
+        { id: 104, nomor_antrian: 1, patient_name: 'Siti Aminah', doctor_name: 'Dr. Budi Santoso', specialty: 'Cardiology', appointment_date: '2025-06-16T13:00:00', status: 'canceled' },
+        { id: 105, nomor_antrian: 3, patient_name: 'Rudi Hartono', doctor_name: 'Dr. Siti Wardani', specialty: 'Dentist', appointment_date: '2025-06-19T10:00:00', status: 'pending' }
+    ];
+    
+    const dummyReportsReady = [
+        { id: 201, appointment_date: '2025-06-15T11:00:00', patient_name: 'Sari Murni', doctor_name: 'Dr. John Doe', specialty: 'Orthopedics' },
+        { id: 202, appointment_date: '2025-06-12T14:00:00', patient_name: 'Agus Wijaya', doctor_name: 'Dr. Jane Smith', specialty: 'Cardiology' }
+    ];
+
+    // 3. RENDER FUNCTIONS (Sekarang semua menggunakan data dummy)
+    const renderDoctors = () => {
+        const doctors = dummyDoctors;
+        doctorsTbody.innerHTML = '';
+        scheduleDoctorSelect.innerHTML = '<option value="">-- Pilih Dokter untuk Jadwal --</option>';
+        if (doctors.length === 0) {
+            doctorsTbody.innerHTML = '<tr><td colspan="3" class="p-2 text-center text-gray-500">Tidak ada dokter yang terdaftar.</td></tr>';
+        } else {
+            doctors.forEach(doc => {
+                doctorsTbody.innerHTML += `<tr><td class="p-2">${doc.name}</td><td class="p-2">${doc.specialty}</td><td class="p-2 space-x-2"><button data-id="${doc.id}" class="edit-doctor-btn text-yellow-500 font-semibold hover:text-yellow-700">Edit</button><button data-id="${doc.id}" class="delete-doctor-btn text-red-500 font-semibold hover:text-red-700">Hapus</button></td></tr>`;
+                scheduleDoctorSelect.innerHTML += `<option value="${doc.id}">${doc.name}</option>`;
+            });
+        }
+    };
+
+    const renderSchedules = () => {
+        const schedules = dummySchedules;
+        schedulesTbody.innerHTML = '';
+        if (schedules.length === 0) {
+            schedulesTbody.innerHTML = '<tr><td colspan="3" class="p-2 text-center text-gray-500">Tidak ada jadwal yang diatur.</td></tr>';
+        } else {
+            schedules.forEach(sc => {
+                schedulesTbody.innerHTML += `<tr><td class="p-2">${sc.doctor_name}</td><td class="p-2">${sc.day_of_week}, ${sc.start_time.slice(0,5)}-${sc.end_time.slice(0,5)}</td><td class="p-2 text-center">${sc.quota}</td></tr>`;
+            });
+        }
+    };
+    
+    const renderPatientAppointments = () => {
+        const appointments = dummyAppointments;
+        patientAppointmentsTbody.innerHTML = ''; 
+        if (appointments.length === 0) {
+            patientAppointmentsTbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">Tidak ada janji temu pasien.</td></tr>';
+            return;
+        }
+
+        appointments.forEach(appt => {
+            const formattedDate = new Date(appt.appointment_date).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' });
+            let statusClass = '', actionButtons = '';
+            switch (appt.status) {
+                case 'pending':
+                    statusClass = 'bg-yellow-100 text-yellow-800';
+                    actionButtons = `<button data-id="${appt.id}" data-status="confirmed" class="action-btn bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs mr-1">Konfirmasi</button><button data-id="${appt.id}" data-status="canceled" class="action-btn bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">Batalkan</button>`; break;
+                case 'confirmed':
+                    statusClass = 'bg-green-100 text-green-800';
+                    actionButtons = `<button data-id="${appt.id}" data-status="completed" class="action-btn bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs mr-1">Selesai</button><button data-id="${appt.id}" data-status="canceled" class="action-btn bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">Batalkan</button>`; break;
+                case 'canceled': statusClass = 'bg-red-100 text-red-800'; actionButtons = `<span class="text-gray-500 text-xs">Tidak ada aksi</span>`; break;
+                case 'completed': statusClass = 'bg-gray-200 text-gray-700'; actionButtons = `<span class="text-gray-500 text-xs">Selesai</span>`; break;
+                default: statusClass = 'bg-gray-100 text-gray-800'; actionButtons = `<span class="text-gray-500 text-xs">N/A</span>`;
+            }
+
+            patientAppointmentsTbody.innerHTML += `
+                <tr>
+                    <td class="px-3 py-2 text-center font-bold text-base text-blue-600">${appt.nomor_antrian || '-'}</td>
+                    <td class="px-3 py-2">${appt.patient_name}</td>
+                    <td class="px-3 py-2">${appt.doctor_name} (${appt.specialty})</td>
+                    <td class="px-3 py-2">${formattedDate}</td>
+                    <td class="px-3 py-2"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">${appt.status}</span></td>
+                    <td class="px-3 py-2">${actionButtons}</td>
+                </tr>`;
+        });
+    };
+
+    const renderMedicalReports = () => {
+        const reports = dummyReportsReady;
+        medicalReportsContainer.innerHTML = '';
+        if (reports.length === 0) {
+            medicalReportsContainer.innerHTML = '<p class="text-gray-500">Tidak ada janji temu yang selesai menunggu laporan.</p>';
+            return;
+        }
+        reports.forEach(appt => {
+            medicalReportsContainer.innerHTML += `
+                <div class="border border-gray-200 p-3 rounded-lg bg-gray-50">
+                    <p><strong>Pasien:</strong> ${appt.patient_name} | <strong>Dokter:</strong> ${appt.doctor_name}</p>
+                    <p class="text-sm text-gray-600">Tanggal: ${new Date(appt.appointment_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric'})}</p>
+                    <form class="report-form mt-2 space-y-2" data-appointment-id="${appt.id}">
+                        <textarea placeholder="Diagnosis" required class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-purple-500"></textarea>
+                        <textarea placeholder="Catatan / Resep" required class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-purple-500"></textarea>
+                        <button type="submit" class="bg-purple-600 text-white px-3 py-1 text-sm rounded-lg hover:bg-purple-700">Simpan Laporan</button>
+                    </form>
+                </div>`;
+        });
+    };
+
+    const renderFacilities = () => {
+        const facilities = dummyFacilities;
+        facilitiesTbody.innerHTML = '';
+        if (facilities.length === 0) {
+            facilitiesTbody.innerHTML = `<tr><td colspan="4" class="p-2 text-center text-gray-500">Tidak ada fasilitas terdaftar.</td></tr>`;
+        } else {
+            facilities.forEach(fac => {
+                facilitiesTbody.innerHTML += `<tr><td class="p-2">${fac.name}</td><td class="p-2">${fac.type}</td><td class="p-2 text-center">${fac.capacity}</td><td class="p-2 space-x-2"><button data-id="${fac.id}" data-name="${fac.name}" data-type="${fac.type}" data-location="${fac.location}" data-capacity="${fac.capacity}" data-description="${fac.description || ''}" class="edit-facility-btn text-yellow-500 font-semibold hover:text-yellow-700">Edit</button><button data-id="${fac.id}" class="delete-facility-btn text-red-500 font-semibold hover:text-red-700">Hapus</button></td></tr>`;
+            });
+        }
+    };
+
+    // 4. EVENT LISTENERS (Hanya simulasi dengan alert)
+    doctorForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('doctor-id').value;
+        const doctorData = { name: document.getElementById('doctor-name').value, specialty: document.getElementById('doctor-specialty').value };
+        
+        alert(`(DEMO) ${id ? 'Mengupdate' : 'Menyimpan'} Dokter: ${doctorData.name} - ${doctorData.specialty}\n\nCATATAN: Data tidak benar-benar berubah karena ini hanya demo.`);
+        doctorForm.reset(); 
+        document.getElementById('doctor-id').value = '';
+    });
+
+    doctorsTbody.addEventListener('click', (e) => {
+        const id = e.target.dataset.id;
+        if (e.target.classList.contains('delete-doctor-btn')) {
+            if (!confirm('(DEMO) Yakin ingin menghapus dokter ini?')) return;
+            alert(`(DEMO) Menghapus Dokter dengan ID: ${id}\n\nCATATAN: Data tidak benar-benar berubah karena ini hanya demo.`);
+        }
+        if (e.target.classList.contains('edit-doctor-btn')) {
+            const row = e.target.closest('tr');
+            document.getElementById('doctor-id').value = id;
+            document.getElementById('doctor-name').value = row.cells[0].textContent;
+            document.getElementById('doctor-specialty').value = row.cells[1].textContent;
+            alert(`(DEMO) Mengedit Dokter: ${row.cells[0].textContent}. Silakan ubah data di form.`);
+        }
+    });
+
+    scheduleForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const scheduleData = { doctor_id: scheduleDoctorSelect.value, day_of_week: document.getElementById('schedule-day').value, start_time: document.getElementById('schedule-start').value, end_time: document.getElementById('schedule-end').value, quota: parseInt(document.getElementById('schedule-quota').value) };
+        if(!scheduleData.doctor_id || !scheduleData.day_of_week || !scheduleData.start_time || !scheduleData.end_time || isNaN(scheduleData.quota)) { 
+            alert('Harap isi semua kolom jadwal dengan benar.'); 
+            return; 
+        }
+        alert(`(DEMO) Menambah Jadwal untuk Dokter ID ${scheduleData.doctor_id} pada hari ${scheduleData.day_of_week}.\n\nCATATAN: Data tidak benar-benar berubah karena ini hanya demo.`);
+        scheduleForm.reset();
+    });
+    
+    patientAppointmentsTbody.addEventListener('click', (e) => {
+        if (e.target.classList.contains('action-btn')) {
+            const appointmentId = e.target.dataset.id;
+            const newStatus = e.target.dataset.status;
+            if (!confirm(`(DEMO) Yakin ingin mengubah status janji temu ini menjadi "${newStatus.toUpperCase()}"?`)) return;
+            alert(`(DEMO) Memperbarui Janji Temu ID ${appointmentId} ke status: ${newStatus}.\n\nCATATAN: Data tidak benar-benar berubah karena ini hanya demo.`);
+        }
+    });
+
+    medicalReportsContainer.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if(!e.target.classList.contains('report-form')) return;
+        const appointmentId = e.target.dataset.appointmentId;
+        const reportData = { diagnosis: e.target.querySelector('textarea:nth-of-type(1)').value, notes: e.target.querySelector('textarea:nth-of-type(2)').value };
+        alert(`(DEMO) Menyimpan Laporan untuk Janji Temu ID ${appointmentId}: Diagnosis "${reportData.diagnosis}".\n\nCATATAN: Data tidak benar-benar berubah karena ini hanya demo.`);
+        e.target.closest('.border').remove();
+    });
+    
+    facilityForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('facility-id').value;
+        const data = { name: document.getElementById('facility-name').value, type: document.getElementById('facility-type').value, location: document.getElementById('facility-location').value, capacity: parseInt(document.getElementById('facility-capacity').value), description: document.getElementById('facility-description').value };
+        if(!data.type || !data.name || !data.location || isNaN(data.capacity)) { alert('Harap isi semua kolom fasilitas dengan benar.'); return; }
+        alert(`(DEMO) ${id ? 'Mengupdate' : 'Menyimpan'} Fasilitas: ${data.name} (${data.type}).\n\nCATATAN: Data tidak benar-benar berubah karena ini hanya demo.`);
+        facilityForm.reset(); 
+        document.getElementById('facility-id').value = '';
+    });
+
+    facilitiesTbody.addEventListener('click', (e) => {
+        const { id, name, type, location, capacity, description } = e.target.dataset;
+        if (e.target.classList.contains('delete-facility-btn')) {
+            if (!confirm('(DEMO) Yakin ingin menghapus fasilitas ini?')) return;
+            alert(`(DEMO) Menghapus Fasilitas dengan ID: ${id}.\n\nCATATAN: Data tidak benar-benar berubah karena ini hanya demo.`);
+        }
+        if (e.target.classList.contains('edit-facility-btn')) {
+            alert(`(DEMO) Mengedit Fasilitas: ${name}. Silakan ubah data di form.`);
+            document.getElementById('facility-id').value = id;
+            document.getElementById('facility-name').value = name;
+            document.getElementById('facility-type').value = type;
+            document.getElementById('facility-location').value = location;
+            document.getElementById('facility-capacity').value = capacity;
+            document.getElementById('facility-description').value = description;
+        }
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => { 
+        alert("(DEMO) Logout berhasil!");
+        // Di aplikasi nyata, ini akan mengarahkan ke halaman login
+        // window.location.href = 'login.html'; 
+    });
+
+    // 5. INITIALIZE PAGE
+    function init() {
+        renderDoctors();
+        renderSchedules();
+        renderPatientAppointments();
+        renderMedicalReports();
+        renderFacilities();
+    }
+    init();
+});
+</script>
+</body>
+</html>
